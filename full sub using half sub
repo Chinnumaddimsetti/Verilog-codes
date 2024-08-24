@@ -1,0 +1,45 @@
+/////////////////////////////////////////////////////////////////////  full sub using half sub     ///////////////////////////////////////////////////////////
+
+*********************************************************************   RTL CODE  ****************************************************************************
+
+module fs(input a,b,c,output diff,borrow);
+	wire w1,w2,w3;
+	hs t1(a,b,w1,w2);
+	hs t2(w1,c,diff,w3);
+	or t3(borrow,w2,w3);
+endmodule
+
+
+///////////////////////////////////////////////////////////  half sub code  ////////////////////////////////////////////////////////////////////////////////////
+
+module hs(input a,b,output diff,borrow);
+	assign diff=a^b;
+	assign borrow=!a&b;
+endmodule
+
+
+*********************************************************************** TB CODE *******************************************************************************
+
+module tb;
+	reg a,b,c;
+	wire diff,borrow;
+fs DUT(a,b,c,diff,borrow);
+	initial 
+		begin 
+		a=1;
+		b=1;
+		c=1;
+		#10;
+		a=1;
+		b=0;
+		c=1;
+		end
+	initial
+	 #30 $finish;
+	 initial 
+	 begin
+	 $monitor("a=%b,b=%b,c=%b,diff=%b,borrow=%b",a,b,c,diff,borrow);
+	 end
+endmodule
+
+	
