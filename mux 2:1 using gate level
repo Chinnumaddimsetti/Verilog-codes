@@ -1,0 +1,22 @@
+/////////////////////////////////////////////////////////////////////      RTL CODE FOR MUX 2:1 GATE LEVEL   //////////////////////////////////////////////////
+
+
+******************************************************************  RTL CODE    **********************************************************************************
+
+module mux_2to1 (
+    input wire a,
+    input wire b,
+    input wire sel,
+    output wire y
+);
+
+wire sel_not;
+wire and1_out;
+wire and2_out;
+
+not (sel_not, sel);
+and (and1_out, a, sel_not);
+and (and2_out, b, sel);
+or (y, and1_out, and2_out);
+
+endmodule
