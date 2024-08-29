@@ -1,0 +1,61 @@
+/////////////////////////////////////////////////////////////////////////////////     JK flipflop     ///////////////////////////////////////////////////////////////
+
+********************************************************************************  RTL CODE   **********************************************************************
+
+module ff(input j, k, clk, rst, output reg y,yb);
+  parameter HOLD = 2'b00, RESET = 2'b01, SET = 2'b10, TOGGLE = 2'b11;
+  
+  always @(posedge clk) begin
+    if (rst)
+      y <= 0;
+    else begin
+      case ({j, k})
+        HOLD:   y <= y;
+        RESET:  y <= 0;
+        SET:    y <= 1;
+        TOGGLE: y <= ~y;
+        default: y <= y;
+      endcase
+    end
+	 assign yb=~y;
+  end
+ 
+endmodule
+
+
+
+*******************************************************************************  TB CODE  *************************************************************************
+
+
+module tb;
+	reg j,k,clk,rst;
+	wire y,yb;
+ff DUT(j,k,clk,rst,y,yb);
+	initial 
+		begin
+			clk=0;
+			forever #5
+			clk=~clk;
+		end
+	initial 
+		begin 
+		@(negedge clk)
+			rst=1'b1;
+		@(negedge clk)
+			rst=1'b0;
+		end
+	initial
+		begin
+	 j=0;k=1; #10
+	 j=1;j=0; #10
+	 j=0;k=0; #10
+	 j=1;k=1;#10;
+		end
+	initial 
+		begin
+		#50 $finish;
+	end
+	initial 
+	$monitor("j=%b,k=%b,clk=%b,rst=%b,y=%b,yb=%b",j,k,clk,rst,y,yb);
+endmodule
+
