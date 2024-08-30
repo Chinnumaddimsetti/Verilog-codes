@@ -1,0 +1,69 @@
+///////////////////////////////////////////////////////////////////////////////////          Loadable counter            //////////////////////////////////////////////////////////////////////
+
+**********************************************************************************   RTL CODE  ************************************************************************************************
+
+
+module counter(
+    input clk,
+    input rst,
+    input load,
+    input [3:0] data_in,
+    output reg [3:0] data_out
+);
+    always @(posedge clk) begin
+        if (rst)
+            data_out <= 4'b0;
+        else if (load)
+            data_out <= data_in;
+        else if (data_out == 4'b1111)
+            data_out <= 4'b0;
+        else 
+            data_out <= data_out + 1'b1;
+    end
+endmodule
+
+
+
+*******************************************************************************   TB CODE   ******************************************************************************************************
+
+module tb;
+	reg clk,rst,load;
+	reg [3:0] data_in;
+	wire [3:0]data_out;
+counter DUT(clk,rst,load,data_in,data_out);
+	initial 
+		begin 
+			clk=0;
+			forever #5
+			clk=~clk;
+		end
+	task reset;
+		begin 
+		@(negedge clk)
+			rst=1;
+		@(negedge clk)
+			rst=0;
+		end
+	endtask
+	task initialize;
+		begin
+		clk=0;
+		rst=0;
+		load=0;
+		data_in=4'b0000;
+		end
+	endtask
+	initial 
+		begin 
+		initialize;
+		reset;
+		load=1;
+		data_in=4'b1010;
+		#10
+		load=0;
+		end
+	initial
+		begin 
+		#500 $finish;
+		end
+endmodule
