@@ -1,0 +1,61 @@
+/////////////////////////////////////////////////////////////////////////////    single port ram using parameter overriding    /////////////////////////////////////////////////////////////
+
+
+*********************************************************************************     RTL CODE      ***************************************************************************************
+module ram(input clk, rst, en, input [width-1:0] data_in, input [addr-1:0] add, output reg [width-1:0] data_out);
+    parameter width = 8, depth = 16, addr = 4;
+    reg [width-1:0] mem[depth-1:0];
+    integer i;
+
+    always @(posedge clk) begin 
+        if (rst) begin 
+            for (i = 0; i < depth; i = i + 1) begin
+                mem[i] <= 0;
+            end
+        end else if (en) begin
+            mem[add] <= data_in;
+        end 
+        data_out <= mem[add];
+    end
+endmodule
+
+*********************************************************************************    TB CODE       ****************************************************************************************
+
+module tb;
+    parameter width = 8;
+    parameter depth = 16;
+    parameter addr = 4;
+    reg [width-1:0] data_in;
+    reg [addr-1:0] add;
+    reg clk, rst, en;
+    wire [width-1:0] data_out;
+    
+    ram #(width, depth, addr) DUT (clk, rst, en, data_in, add, data_out);
+    
+    initial begin 
+        clk = 0;
+        forever #5 clk = ~clk;
+    end
+
+    task initialize;
+        begin
+            rst = 1;
+            en = 0;
+            data_in = 8'b0;
+            #10 rst = 0; 
+        end
+    endtask
+
+    initial begin 
+        initialize;
+        en = 1;
+        data_in = 8'b01010101;
+        add = 4'b1010;
+        #10 en = 0;
+        #10 en = 1;
+    end
+
+    initial begin 
+        #100 $finish;
+    end
+endmodule
