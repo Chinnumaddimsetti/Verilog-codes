@@ -1,0 +1,86 @@
+////////////////////////////////////////////////////////////////////////////////        Dual port Asynch using parameter            ////////////////////////////////////////////////////////////////////
+
+
+************************************************************************************    RTL CODE    ****************************************************************************************************
+
+module ram(
+    input clk, rst, wr_en, rd_en,
+    input [addr-1:0] rd_addr,
+    input [addr-1:0] wr_addr,
+    input [width-1:0] data_in,
+    output reg [width-1:0] data_out
+);
+    parameter width = 8, depth = 16, addr = 4;
+    reg [width-1:0] mem[0:depth-1];
+    integer i;
+
+    always @(posedge clk or posedge rst) begin 
+        if (rst) begin 
+            for (i = 0; i < depth; i = i + 1) begin
+                mem[i] <= 0;
+            end
+        end else begin
+            if (wr_en && !rd_en) 
+                mem[wr_addr] <= data_in; 
+            else if (rd_en && !wr_en) 
+                data_out <= mem[rd_addr]; 
+        end
+    end
+endmodule
+
+
+******************************************************************************    TB CODE   ***********************************************************************************************************
+
+
+module tb;
+    parameter width = 8, depth = 16, addr = 4;
+    reg clk, rst, wr_en, rd_en;
+    reg [addr-1:0] rd_addr, wr_addr;
+    reg [width-1:0] data_in;
+    wire [width-1:0] data_out;
+
+    ram #(width, depth, addr) DUT (clk, rst, wr_en, rd_en, rd_addr, wr_addr, data_in, data_out);
+
+    initial begin 
+        clk = 0;
+        forever #5 clk = ~clk;
+    end
+
+    task reset;
+        begin  
+            @(negedge clk)
+                rst = 1;
+            @(negedge clk)
+                rst = 0;
+        end
+    endtask
+
+    task initialize;
+        begin 
+            clk = 0;
+            rst = 0;
+            wr_en = 0;
+            rd_en = 0;
+            rd_addr = 0;
+            wr_addr = 0;
+            data_in = 0;
+        end
+    endtask
+
+    initial begin 
+        initialize;
+        reset;
+        data_in = 8'b01010101;
+        wr_addr = 4'b1010;
+        rd_addr = 4'b1010;
+        
+       
+        wr_en = 1;
+        #10 wr_en = 0;  
+        rd_en = 1;
+        #10 rd_en = 0; 
+        
+        #50;
+        $finish;
+    end
+endmodule
