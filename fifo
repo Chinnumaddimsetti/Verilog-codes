@@ -1,0 +1,111 @@
+///////////////////////////////////////////////////////////////////////////////////       fifo          /////////////////////////////////////////////////////////////////////
+
+
+************************************************************************************     RTL CODE     **********************************************************************
+
+
+module fifo(
+    input clk, rst, wr_en, rd_en,
+    input [width-1:0] data_in,
+    output reg [width-1:0] data_out,
+    output empty, full
+);
+    parameter width = 8, depth = 16, addr = 4;
+    reg [addr-1:0] rd_ptr;
+    reg [addr-1:0] wr_ptr;
+    reg [width-1:0] mem [depth-1:0];
+    reg [addr:0] count;
+
+    always @(posedge clk) begin
+        if (rst) begin
+            wr_ptr <= 0;
+            rd_ptr <= 0;
+            count <= 0;
+        end else begin
+            if (wr_en && !full) begin
+                mem[wr_ptr] <= data_in;
+                wr_ptr <= wr_ptr + 1'b1;
+                count <= count + 1'b1;
+            end
+            if (rd_en && !empty) begin
+                data_out <= mem[rd_ptr];
+                rd_ptr <= rd_ptr + 1'b1;
+                count <= count - 1'b1;
+            end
+        end
+    end
+
+    assign full = (count == depth);
+    assign empty = (count == 0);
+
+endmodule
+
+
+************************************************************************************   TB CODE    *****************************************************************************
+
+
+module fifo_tb;
+
+    parameter width = 8;
+    parameter depth = 16;
+    parameter addr = 4;
+
+    reg clk, rst, wr_en, rd_en;
+    reg [width-1:0] data_in;
+    wire [width-1:0] data_out;
+    wire empty, full;
+
+    fifo #(
+        .width(width),
+        .depth(depth),
+        .addr(addr)
+    ) fifo_inst (
+        .clk(clk),
+        .rst(rst),
+        .wr_en(wr_en),
+        .rd_en(rd_en),
+        .data_in(data_in),
+        .data_out(data_out),
+        .empty(empty),
+        .full(full)
+    );
+
+    initial begin
+        clk = 0;
+        forever #5 clk = ~clk;
+    end
+
+    initial begin
+        rst = 1;
+        wr_en = 0;
+        rd_en = 0;
+        data_in = 0;
+
+        #10;
+        rst = 0;
+
+        wr_en = 1;
+        rd_en = 0;
+        data_in = 8'hA5;
+        #10;
+        data_in = 8'h5A;
+        #10;
+        data_in = 8'hFF;
+        #10;
+        wr_en = 0;
+
+        #10;
+        rd_en = 1;
+        #10;
+        #10;
+        rd_en = 0;
+
+        #10;
+        if (empty) $display("FIFO is empty.");
+        if (full) $display("FIFO is full.");
+
+        #10;
+        $finish;
+    end
+
+endmodule
