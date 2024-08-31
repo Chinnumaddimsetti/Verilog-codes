@@ -1,0 +1,98 @@
+///////////////////////////////////////////////////////////////////          seq 101        /////////////////////////////////////////////////////////////////////
+
+
+***************************************************************************         RTL CODE      **************************************************************************
+
+module seq(input clk,rst,data_in,output det);
+	parameter s0=2'b00,s1=2'b01,s2=2'b10,s3=2'b11;
+	reg [1:0]state,nstate;
+always@(posedge clk)
+	begin 
+		if(rst)
+			state<=s0;
+		else 
+			state<=nstate;
+	end
+always@(state,data_in)
+	begin
+	case(state)
+		s0:if(data_in==1)
+			 nstate=s1;
+			else 
+				nstate=s0;
+		s1:if(data_in==0)
+			 nstate=s2;
+			else 
+				nstate=s1;
+		s2:if(data_in==1)
+			 nstate=s3;
+			else 
+				nstate=s0;
+		s3:if(data_in==1)
+			 nstate=s1;
+			else 
+				nstate=s2;
+		default: nstate=s0;
+	endcase
+	end
+assign det=(state==s3)?1'b1:1'b0;
+endmodule
+
+		
+
+**************************************************************************          TB CODE       ***************************************************************************
+
+
+module tb;
+	reg clk,rst,data_in;
+	wire det;
+seq DUT(clk,rst,data_in,det);
+	initial 
+		begin 
+			clk=0;
+			forever #5
+			clk=~clk;
+		end
+	task intialize;
+		begin 
+		clk=0;
+		rst=0;
+		data_in=0;
+		end
+	endtask
+	task reset;
+		begin
+		@(negedge clk)
+			rst=1;
+		@(negedge clk)
+			rst=0;
+		end
+	endtask
+	initial 
+		begin 
+		intialize;
+		reset;
+		data_in=1;
+		#10
+		data_in=0;
+		#10
+		data_in=1;#10
+		data_in=1;
+		#10
+		data_in=1;
+		#10
+		data_in=0;
+		#10
+		data_in=1;#20
+		data_in=1;
+		#10
+		data_in=1;
+		#10
+		data_in=0;
+		end
+	initial 
+		begin 
+		#400 $finish;
+	end
+endmodule
+
