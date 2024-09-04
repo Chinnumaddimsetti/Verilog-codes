@@ -1,0 +1,72 @@
+////////////////////////////////////////////////////////////////////////////        freq divider by 5 with 50% cycle duty          ////////////////////////////////////////////////////////
+
+
+**************************************************************************************       RTL CODE       ********************************************************************************
+module freq_div_by_5 (
+    input clk,
+    input reset,
+    output reg clk_out
+);
+
+    reg [2:0] count;
+
+    always @(negedge clk ) begin
+        if (reset) begin
+            count <= 3'b000;
+            clk_out <= 1'b0;
+        end else begin
+            if (count == 3'b100) begin
+                count <= 3'b000;
+                clk_out <= ~clk_out;
+            end else begin
+                count <= count + 1;
+            end
+        end
+    end
+
+    always @(posedge clk ) begin
+        if (reset) begin
+            clk_out <= 1'b0;
+        end else begin
+            if (count == 3'b010) begin
+                clk_out <= ~clk_out;
+            end
+        end
+    end
+
+endmodule
+
+
+
+****************************************************************************************     TB CODE     ************************************************************************************
+
+module tb_freq_div_by_5;
+
+    reg clk;
+    reg reset;
+    wire clk_out;
+
+    freq_div_by_5 uut (
+        .clk(clk),
+        .reset(reset),
+        .clk_out(clk_out)
+    );
+
+    always #5 clk = ~clk;
+
+    initial begin
+        clk = 0;
+        reset = 1;
+
+        #10 reset = 0;
+
+        #100;
+        $finish;
+    end
+
+    initial begin
+        $monitor("Time: %0t | clk: %b | reset: %b | clk_out: %b", 
+                 $time, clk, reset, clk_out);
+    end
+
+endmodule
