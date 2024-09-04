@@ -1,0 +1,75 @@
+***********************************************************************************     freq divider by 3  *********************************************
+
+
+///////////////////////////////////////////////////////////////////     RTL CODE      /////////////////////////////////////////////////////////////////////
+
+module fre(input clk,rst,output reg out);
+	reg [1:0]count;
+	always@(posedge clk)
+		begin
+		if(rst)
+			begin 
+			count<=0;
+			out<=0;
+			end
+		else 
+			begin 
+			if(count==2'b10)
+				begin 
+					count=0;
+					out=~out;
+				end
+			else 
+				count=count+1;
+			end
+		end
+	always@(negedge clk)
+		begin
+		if(rst)
+			begin 
+			out<=0;
+			end
+		else 
+			begin
+				if(count==2'b01)
+					begin
+					out<=~out;
+					end
+			end
+		end
+endmodule
+					
+
+
+//////////////////////////////////////////////////////////////////      TB CODE        /////////////////////////////////////////////////////////////////////
+
+module tb;
+
+    reg clk;
+    reg reset;
+    wire clk_out;
+
+    fre uut (
+        .clk(clk),
+        .rst(reset),
+        .out(clk_out)
+    );
+
+    always #5 clk = ~clk;
+
+    initial begin
+        clk = 0;
+        reset = 1;
+
+        #10 reset = 0;
+
+        #100;
+        $finish;
+    end
+
+    initial begin
+        $monitor("Time: %0t | clk: %b | reset: %b | clk_out: %b", 
+                 $time, clk, reset, clk_out);
+    end
+
+endmodule
