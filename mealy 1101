@@ -1,0 +1,97 @@
+////////////////////////////////////////////////////////////////////////////////////           mealy 1011             /////////////////////////////////////////////////////////
+
+*****************************************************************************     RTL CODE          ******************************************************************************
+module seq1101(input clk,rst,data_in,output reg det);
+	reg [1:0]state;
+	parameter s0=2'b00,s1=2'b01,s2=2'b10,s3=2'b11;
+	always@(posedge clk)
+		begin 
+			if(rst)
+				begin 
+					det=0;
+					state=s0;
+				end
+			else 
+				begin 
+					case(state)
+						s0:if (data_in==1)
+							begin 
+								det=0;state=s1;
+							end
+							else
+								begin
+								det=0;state=s0;
+								end
+						s1:if (data_in==1)
+							begin 
+								det=0;state=s2;
+							end
+							else
+							begin
+								det=0;state=s0;
+							end
+						s2:if(data_in==0)
+							begin 
+							det=0;state=s3;
+							end
+							else
+							begin 
+							det=0;state=s2;
+							end
+						s3:if(data_in==1)
+							begin
+							det=1;state=s1;
+							end
+							else
+							begin 
+							det=0;state=s0;
+							end
+						default:
+							begin 
+							det=0;state=s0;
+							end
+					endcase
+				end
+			end
+endmodule
+
+							
+					
+
+
+*****************************************************************************      TB CODE         *******************************************************************************
+
+
+module tb_mealy_verilog_code;
+    reg data_in;
+    reg clk;
+    reg rst;
+    wire det;
+
+    seq1101 uut (clk,rst,data_in,det);
+    initial begin
+        clk = 0;
+        forever #5 clk = ~clk; 
+		  end
+    initial 
+		begin
+        rst = 0;
+			data_in = 0;
+
+        #10 rst = 1;
+        #10 rst = 0; 
+        #10 data_in = 0;
+        #10 data_in = 1;
+        #10 data_in = 1;
+        #10 data_in = 0;
+        #10 data_in = 1;
+        #10 data_in = 1;
+        #10 data_in = 1;
+        #10 data_in = 0;
+        #200 $finish;
+    end
+    initial 
+		begin
+        $monitor("Time: %0t | rst: %b | data_in: %b | det: %b | state: %b", $time, rst, data_in, det, uut.state);
+    end
+endmodule
