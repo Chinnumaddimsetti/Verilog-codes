@@ -1,0 +1,117 @@
+//////////////////////////////////////////////////////////////////////           complex seq mealy 110             //////////////////////////////////////////////////
+
+
+***********************************************************************               RTL CODE            ****************************************************************
+
+module complex(input clk,rst,data_in,output reg det);
+	parameter s0=3'b000,s1=3'b001,s2=3'b010,s3=3'b011,s4=3'b100,s5=3'b101,s6=3'b110;
+	reg [2:0]state;
+	always@(posedge clk)
+		begin 
+			if(rst)
+				begin
+					det<=0;
+					state<=s0;
+				end
+			else
+				begin
+					case(state)
+						s0:
+						if(data_in==1)
+							begin 
+								det<=0;state<=s1;
+							end
+						else
+							begin 
+								det<=0;state<=s0;
+							end
+						s1:
+						if(data_in==1)
+							begin 
+								det<=0;state<=s2;
+							end
+						else
+							begin 
+								det<=0;state<=s0;
+							end
+						s2:
+						if(data_in==0)
+							begin 
+								det<=1;state<=s3;
+							end
+						else
+							begin 
+								det<=0;state<=s2;
+							end
+						s3:
+						if(data_in==1)
+							begin 
+								det<=1;state<=s4;
+							end
+						else
+							begin 
+								det<=1;state<=s3;
+							end
+						s4:
+						if(data_in==1)
+							begin 
+								det<=1;state<=s5;
+							end
+						else
+							begin 
+								det<=1;state<=s4;
+							end
+						s5:
+						if(data_in==0)
+							begin 
+								det<=0;state<=s0;
+							end
+						else
+							begin 
+								det<=1;state<=s5;
+							end
+						endcase
+				end
+		end
+endmodule
+
+							
+
+
+*********************************************************************            TB CODE         ***************************************************************************
+
+
+
+
+module tb;
+	reg clk,rst,data_in;
+	wire out;
+complex DUT(clk,rst,data_in,out);
+	initial 
+		begin 
+			clk=0;
+			forever #5
+			clk=~clk;
+		end
+	initial
+		begin 
+		rst=1;
+		#10
+		rst=0;
+		data_in=1;#10
+		data_in=1;#10
+		data_in=0;#10
+		data_in=1;#10
+		data_in=1;#10
+		data_in=0;#10
+		data_in=1;#10
+		data_in=1;#10
+		data_in=0;#10;
+	end
+initial 
+	begin 
+		#300 $finish;
+	end
+endmodule
+
+		
