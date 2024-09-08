@@ -1,0 +1,79 @@
+////////////////////////////////////////////////////////////////////////////////      moore seq 1101        ////////////////////////////////////////////////////////////
+
+
+*******************************************************************************   RTL CODE   ********************************************************************************
+
+module seq(input clk,rst,data_in,output out);
+	reg [2:0]state,nstate;
+	parameter s0=3'b000,s1=3'b001,s2=3'b010,s3=3'b011,s4=3'b100;
+	always@(posedge clk)
+		begin 
+			if(rst)
+				begin 
+					state<=s0;
+				end
+			else
+				begin 
+					state<=nstate;
+				end
+		end
+	always@(state,data_in)
+		begin 
+			case(state)
+				s0:if(data_in==1)
+					nstate<=s1;
+					else
+					nstate<=s0;
+				s1:if(data_in==1)
+					nstate<=s2;
+					else
+					nstate<=s0;
+				s2:if(data_in==0)
+					nstate<=s3;
+					else
+					nstate<=s2;
+				s3:if(data_in==1)
+					nstate<=s4;
+					else
+					nstate<=s0;
+				s4:if(data_in==1)
+					nstate<=s2;
+					else
+					nstate<=s0;
+				default:nstate<=s0;
+			endcase
+		end
+assign out=(state==s4)?1'b1:1'b0;
+endmodule
+
+
+*******************************************************************************    TB CODE    ***********************************************************************************
+
+
+module tb;
+	reg clk,rst,data_in;
+	wire out;
+seq DUT(clk,rst,data_in,out);
+	initial 
+		begin 
+		clk=0;
+		forever #5
+		clk=~clk;
+		end
+	initial 
+		begin 
+		rst=1;
+		#10
+		rst=0;
+		data_in=0;#10
+		data_in=1;#10
+		data_in=1;#10
+		data_in=0;#10
+		data_in=1;#10
+		data_in=0;#10;
+		end
+initial 
+	begin
+	#200 $finish;
+	end
+endmodule
