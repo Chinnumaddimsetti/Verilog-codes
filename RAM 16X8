@@ -1,0 +1,75 @@
+///////////////////////////////////////////////////////////////////////               RAM 16X8                   /////////////////////////////////////////////////////////////
+
+
+**************************************************************************          RTL CODE        **********************************************************************
+module ram(
+    input   clk,
+    input   rst,
+    input   wr_en,
+    input   rd_en,
+    input   [7:0] data_in,
+    input   [3:0] wt_addr,
+    input   [3:0] rd_addr,
+    output  reg [7:0] data_out
+);
+		integer i;
+
+     reg [7:0] mem [15:0];
+
+    always @(posedge clk or posedge rst) begin
+        if (rst) begin
+            for(i=0;i<16;i=i+1)
+					begin 
+					mem[i]=0;
+					end
+				
+        end 
+        else if (wr_en && !rd_en) begin
+            mem[wt_addr] <= data_in;
+        end 
+        else if (!wr_en && rd_en) begin
+            data_out <= mem[rd_addr];
+        end 
+        else begin
+            data_out <= 8'd0;
+        end
+    end
+
+endmodule
+
+*************************************************************************         TB CODE      **************************************************************************
+module tb;
+	reg clk,rst,wr_en,rd_en;
+	reg [7:0]data_in;
+	reg [3:0]wt_addr,rd_addr;
+	wire [7:0]data_out;
+	ram DUT(clk,rst,wr_en,rd_en,data_in,wt_addr,rd_addr,data_out);
+	initial 
+		begin 
+		clk=0;
+		forever #5
+		clk=~clk;
+		end
+	initial 
+		begin 
+		rst=1;
+		#10
+		rst=0;
+		wr_en=1;rd_en=0;
+		data_in=8'b10101010;
+		wt_addr=4'b1010;
+		#10
+		wr_en=0;
+		rd_en=1;
+		rd_addr=4'b1010;
+		end
+	initial 
+		begin
+		#100 $finish;
+		end
+endmodule
+
+		
+		
+		
+
