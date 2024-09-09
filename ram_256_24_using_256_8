@@ -1,0 +1,96 @@
+///////////////////////////////////////////////////////////////         ram_256_24_using_256_8            ///////////////////////////////////////////////////////////////////
+
+**********************************************************************************           RTL CODE           **********************************************************
+
+module ram_256x24 (
+    input wire clk,
+    input wire we,
+    input wire [7:0] addr,
+    input wire [23:0] din,
+    output wire [23:0] dout
+);
+
+    wire [7:0] dout0, dout1, dout2;
+
+    ram_256x8 ram0 (
+        .clk(clk),
+        .we(we),
+        .addr(addr),
+        .din(din[7:0]),
+        .dout(dout0)
+    );
+
+    ram_256x8 ram1 (
+        .clk(clk),
+        .we(we),
+        .addr(addr),
+        .din(din[15:8]),
+        .dout(dout1)
+    );
+
+    ram_256x8 ram2 (
+        .clk(clk),
+        .we(we),
+        .addr(addr),
+        .din(din[23:16]),
+        .dout(dout2)
+    );
+
+    assign dout = {dout2, dout1, dout0};
+
+endmodule
+
+
+////////////////////////////////////////////////////////////////////////////////        ram 256*8  code   /////////////////////////////////////////////////////////////
+
+
+module ram_256x8 (
+    input wire clk,
+    input wire we,
+    input wire [7:0] addr,
+    input wire [7:0] din,
+    output reg [7:0] dout
+);
+    reg [7:0] mem [255:0];
+
+    always @(posedge clk) begin
+        if (we) begin
+            mem[addr] <= din;
+        end
+        dout <= mem[addr];
+    end
+endmodule
+
+*********************************************************************************           TB CODE              *********************************************************
+
+
+module tb;
+    reg clk, we;
+    reg [7:0] addr;
+    reg [23:0] din;
+    wire [23:0] dout;
+
+    ram_256x24 DUT (
+        .clk(clk),
+        .we(we),
+        .addr(addr),
+        .din(din),
+        .dout(dout)
+    );
+
+    initial begin 
+        clk = 0;
+        forever #5 clk = ~clk;
+    end
+
+    initial begin 
+        we = 1;
+        addr = 8'b00010100;
+        din = 24'b000000001111111100000000;
+        #10 we = 0;
+    end
+
+    initial begin
+        #100 $finish;
+    end
+endmodule
