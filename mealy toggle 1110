@@ -1,0 +1,93 @@
+/*                                                                       RTL CODE                                                            */
+
+module seq(input clk, rst, data, output reg det);
+	reg [2:0] state;
+	parameter s0 = 3'b000, s1 = 3'b001, s2 = 3'b010, s3 = 3'b011;
+	
+	always @(posedge clk) begin
+		if (rst) begin
+			det = 0;
+			state = s0;
+		end else begin
+			case (state)
+				s0: if (data == 1) begin
+					state = s1;
+				end else begin
+					state = s0;
+				end
+				
+				s1: if (data == 1) begin
+					state = s2;
+				end else begin
+					state = s0;
+				end
+				
+				s2: if (data == 1) begin
+					state = s3;
+				end else begin
+					state = s0;
+				end
+				
+				s3: if (data ==0 ) begin
+					state = s0;det=~det;
+				end else begin
+					state = s3;
+				end
+				
+			endcase
+		end
+	end
+endmodule
+
+
+
+/*                                                                TB CODE                                                         */
+
+
+  module tb;
+  reg clk,rst,data;
+  wire det;
+  seq DUT(clk,rst,data,det);
+  initial 
+	begin 
+	clk=0;
+	forever #5
+	clk=~clk;
+	end
+	task initialize;
+		begin 
+		{clk,rst,data}=0;
+		end
+	endtask
+	task reset;
+		begin 
+			@(negedge clk)
+			rst=1;
+			@(negedge clk)
+			rst=0;
+		end
+	endtask
+	initial
+	 begin 
+	 initialize;
+	 reset;
+	 data=1;#10
+	 data=1;#10
+	 data=1;#10data=0;#10
+	 data=1;#10
+	 data=1;#10
+	 data=1;#10
+	 data=1;#10
+	 data=0;#10
+	 data=1;#10
+	 data=1;#10
+	 data=0;#10;
+	 end
+	 initial 
+		begin
+		#200 $finish;
+		end
+	endmodule
+	
+	 
+		
