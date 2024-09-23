@@ -1,0 +1,130 @@
+/*                                                         RTL CODE                                                                              */
+
+
+module vending_machine (
+    input clk,
+    input reset,
+    input coin_1,
+    input coin_2,
+    output reg X,
+    output reg Y
+);
+
+    parameter S0 = 2'b00,
+              S1 = 2'b01,
+              S2 = 2'b10;
+
+    reg [1:0] state;
+
+    always @(posedge clk or posedge reset) begin
+        if (reset) begin
+            state <= S0;
+            X <= 0;
+            Y <= 0;
+        end else begin
+            case (state)
+                S0: begin
+                    if (coin_1)
+                        state <= S1;
+                    else if (coin_2)
+                        state <= S2;
+                    else
+                        state <= S0;
+                end
+                S1: begin
+                    if (coin_1)
+                        state <= S2;
+                    else if (coin_2) begin
+                        state <= S0;
+                        X <= 1; #10 X <= 0;
+                        Y <= 0;  
+                    end else
+                        state <= S1;
+                end
+                S2: begin
+                    if (coin_1) begin
+                        state <= S0;
+                        X <= 1; #10 X <= 0;
+                        Y <= 0;  
+                    end 
+						  else if (coin_2) 
+						  begin
+                        state <= S0;
+                        X <= 1; #10 X <= 0;
+                        Y <= 1; #10 Y <= 0; 
+                    end else
+                        state <= S2;
+                end
+            endcase
+        end
+    end
+endmodule
+
+
+
+/*                                                       TB CODE                                                                             */
+
+
+
+module vending_machine_tb;
+
+    reg clk;
+    reg reset;
+    reg coin_1;
+    reg coin_2;
+    wire X;
+    wire Y;
+
+    vending_machine uut (
+        .clk(clk),
+        .reset(reset),
+        .coin_1(coin_1),
+        .coin_2(coin_2),
+        .X(X),
+        .Y(Y)
+    );
+
+    initial begin
+        clk = 0;
+        forever #5 clk = ~clk;
+    end
+
+    initial begin
+        reset = 1;
+        coin_1 = 0;
+        coin_2 = 0;
+
+        #10 reset = 0;
+
+        #10 coin_1 = 1;
+        #10 coin_1 = 0;
+
+        #10 coin_2 = 1;
+        #10 coin_2 = 0;
+
+        #20;
+
+        #10 coin_2 = 1;
+        #10 coin_2 = 0;
+
+        #10 coin_2 = 1;
+        #10 coin_2 = 0;
+
+        #20;
+
+        #10 coin_1 = 1;
+        #10 coin_1 = 0;
+        #10 coin_1 = 1;
+        #10 coin_1 = 0;
+        #10 coin_1 = 1;
+        #10 coin_1 = 0;
+
+        #20;
+
+        #10 reset = 1;
+        #10 reset = 0;
+        
+        #50 $finish;
+    end
+
+endmodule
