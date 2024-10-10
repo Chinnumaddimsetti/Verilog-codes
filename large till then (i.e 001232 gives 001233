@@ -1,0 +1,111 @@
+/*                                                               large till then                                                                           */
+
+
+/*                                                                      RTL CODE                                                                            */
+
+module till (
+    input clk,
+    input rst,
+    input [1:0] data_in,
+    output reg [1:0] det
+);
+    reg [1:0] state, nstate;
+
+    parameter s0 = 2'b00, s1 = 2'b01, s2 = 2'b10, s3 = 2'b11;
+
+    always @(posedge clk or posedge rst) begin
+        if (rst)
+            state <= s0;
+        else
+            state <= nstate;
+    end
+
+    always @(*) begin
+        nstate = state;
+        case (state)
+            s0: begin
+                if (data_in == 2'b01)
+                    nstate = s1;
+                else if (data_in == 2'b10)
+                    nstate = s2;
+                else if (data_in == 2'b11)
+                    nstate = s3;
+            end
+            s1: begin
+                if (data_in == 2'b00 || data_in == 2'b01)
+                    nstate = s1;
+                else if (data_in == 2'b10)
+                    nstate = s2;
+                else if (data_in == 2'b11)
+                    nstate = s3;
+            end
+            s2: begin
+                if (data_in == 2'b11)
+                    nstate = s3;
+					else 
+							nstate<=s2;
+            end
+            s3: begin
+                nstate = s3;
+            end
+            default: nstate = s0;
+        endcase
+    end
+
+    always @(posedge clk or posedge rst) begin
+        if (rst)
+            det <= 2'b00;
+        else begin
+            case (state)
+                s3: det <= 2'b11;
+                s2: det <= 2'b10;
+                s1: det <= 2'b01;
+                default: det <= 2'b00;
+            endcase
+        end
+    end
+endmodule
+
+
+
+
+/*                                                                        TB CODE                                                                                */
+
+
+module tb;
+	reg clk,rst;
+	reg [1:0]data_in;
+	wire [1:0]det;
+till DUT(clk,rst,data_in,det);
+	initial 
+		begin 
+			clk=0;
+			forever #5 clk=~clk;
+		end
+	task initialize;
+		begin 
+		{clk,rst,data_in}=0;
+		end
+	endtask
+	task reset;
+		begin 
+			@(negedge clk)
+			rst=1;
+			@(negedge clk)
+			rst=0;
+		end
+	endtask
+	initial
+	 begin
+	  initialize;
+	  reset;
+	  #10 data_in=1; #10 data_in=0 ;#10 data_in=1; #10 data_in=3; #10 data_in=2;
+	  end
+	 initial 
+		begin
+		 #100 $finish;
+		end
+	initial 
+		$monitor("input data_in=%b,output det=%b",data_in,det);
+		
+endmodule
