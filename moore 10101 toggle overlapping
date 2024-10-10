@@ -1,0 +1,128 @@
+/*                                                      moore 10101 toggle overlapping                                                                       */
+
+
+/*                                                                        rtl code                                                                            */
+
+
+module seq(clk,rst,data_in,det);
+	input clk,rst,data_in;
+	output reg det;
+	reg [3:0]state,nstate;
+	parameter s0=4'b0000,s1=4'b0001,s2=4'b0010,s3=4'b0011,s4=4'b0100,
+				s5=4'b0101,s6=4'b0110,s7=4'b0111,s8=4'b1000,s9=4'b1001,
+				s10=4'b1010;
+	always@(posedge clk)	
+		begin 
+		if(rst)
+			begin
+			state<=s0;
+			end
+		else
+			state<=nstate;
+		end
+	always@(*)
+		begin 
+			nstate<=s0;
+			case(state)
+				s0:if(data_in==1)
+					nstate<=s1;
+					else 
+					nstate<=s0;
+				s1:if(data_in==0)
+					nstate<=s2;
+					else
+					nstate<=s1;
+				s2:if(data_in==1)
+					nstate<=s3;
+					else
+					nstate<=s0;
+				s3:if(data_in==0)
+					nstate<=s4;
+					else 
+					nstate<=s1;
+				s4:if(data_in==1)
+					nstate<=s5;
+					else
+					nstate<=s0;
+				s5:if(data_in==1)
+					nstate<=s7;
+					else
+					nstate<=s6;
+				s6:if(data_in==1)
+					nstate<=s3;
+					else 
+					nstate<=s5;
+				s7:if(data_in==1)
+					nstate<=s7;
+					else
+					nstate<=s8;
+				s8:if(data_in==1)
+					nstate<=s9;
+					else
+					nstate<=s5;
+				s9:if(data_in==1)
+					nstate<=s7;
+					else 
+					nstate<=s10;
+				s10:if(data_in==1)
+					nstate<=s3;
+					else
+					nstate<=s5;
+				default:nstate<=s0;
+				endcase
+			end
+			
+always@(posedge clk)
+	begin 
+	if(state==s5 || state ==s6 || state == s7 || state ==s8 ||state ==s9 ||state==s10)
+		det<=1;
+	else
+		det<=0;
+	end
+endmodule
+
+			
+/*                                                                  tb code                                                                        */
+
+
+module tb;
+	reg clk,rst,data_in;
+	wire det;
+seq DUT(clk,rst,data_in,det);
+	initial 
+		begin 
+			clk=0;
+			forever #5 clk=~clk;
+		end
+	task reset;
+		begin 
+			@(negedge clk)	
+				rst=1;
+			@(negedge clk)	
+				rst=0;
+		end
+	endtask 
+	task initialize;
+		begin 
+			{clk,rst,data_in}=0;
+		end
+	endtask 
+	initial 
+		begin 
+			initialize;
+			reset;
+			#10 data_in=1 ; #10 data_in=0 ;#10 data_in=1;
+			#10 data_in=0 ; #10 data_in=1 ;#10 data_in=0;
+			#10 data_in=1 ; #10 data_in=0 ;#10 data_in=1;
+			#10 data_in=1 ; #10 data_in=0 ;#10 data_in=1;
+		end
+	initial 
+		begin 
+		#200 $finish;
+		end
+endmodule
+
+						
+
+			
+			
