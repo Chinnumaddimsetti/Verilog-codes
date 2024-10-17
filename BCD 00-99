@@ -1,0 +1,84 @@
+/*                                                                                          BCD 00-99                                                                                                      */
+
+
+/*                                                                                                      RTL CODE                                                                                            */
+
+module bcd(input clk,rst,output reg [3:0]count1,count2);
+	always@(posedge clk)
+		begin 
+			if(rst)
+				begin 
+					count1<=4'b0000;
+				end
+			else 
+				begin 
+				if(count1==4'b1001)
+					begin 
+						count1<=4'b0;
+					end
+				else 
+					begin 
+						count1<=count1+1'b1;
+					end
+				end
+		end
+	always@(posedge clk)
+		begin 
+			if(rst)
+				begin 
+					count2<=4'b0;
+				end
+			else begin
+				if(count1==4'b1001 && count2<4'b1001)
+					begin 
+						count2<=count2+1'b1;
+					end
+				else if(count1==4'b1001 && count2==4'b1001)
+					begin 
+						count2<=4'b0;
+					end
+				end
+		end
+endmodule
+
+
+
+/*                                                                                           TB CODE                                                                                            */
+
+module bcd_test;
+
+reg clk;
+reg rst;
+
+wire [3:0]q1,q2;
+
+bcd uut (
+clk,rst,q1,q2
+);
+initial
+begin
+clk=1'b0;
+forever
+#5 clk=~clk;
+end
+task reset;
+begin
+@(negedge clk)
+rst=1'b1;
+@(negedge clk)
+rst=1'b0;
+end
+endtask
+task initialize;
+begin
+rst=1'b1;
+end
+endtask
+initial begin
+ initialize;
+reset;
+end
+initial
+$monitor($time,"clk=%b,rst=%b,q2=%d,q1=%d",clk,rst,q2,q1);
+
+endmodule
