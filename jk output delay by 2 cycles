@@ -1,0 +1,82 @@
+/*                                                 rtl code                                                                                          */
+
+module jk(input j,k,clk,rst,output reg q);
+	parameter hold=2'b00,reset=2'b01,set=2'b10,toggle=2'b11;
+	reg q1,q2;
+always@(posedge clk)
+	if(rst)
+		begin 
+			q1<=0;
+		end
+	else
+		begin 
+			case({j,k})
+				hold:q1<=q1;
+				reset:q1<=0;
+				set:q1<=1;
+				toggle:q1<=~q1;
+			endcase
+		end
+always@(posedge clk)
+	begin 
+	if(rst)
+		begin 
+			q2<=0;
+		end
+	else
+		q2<=q1;
+	end
+always@(posedge clk)	
+	begin
+		if(rst)
+			q<=0;
+		else
+			q<=q2;
+	end
+endmodule
+
+			
+
+/*                                                      tb code                                                                                       */
+
+
+module tb;
+	reg clk,rst,j,k;
+	wire q;
+jk DUT(j,k,clk,rst,q);
+	initial 
+		begin 
+			clk=0;
+			forever #0.5 clk=~clk;
+		end
+	task reset;
+		begin 
+			@(negedge clk)
+				rst=1;
+			@(negedge clk)
+				rst=0;
+		end
+	endtask 
+	task in;
+		begin 
+			j=1;k=0;
+			#10 j=0;k=0;
+			#10 j=0;k=1;
+		end
+	endtask
+	task initialize;
+		begin 
+		{j,k,clk,rst}=0;
+		end
+	endtask
+	initial 
+		begin 
+			initialize;
+			reset;
+			in;
+		end
+	initial 
+		begin 
+		#200 $finish;
+		end
+endmodule
