@@ -1,0 +1,51 @@
+/*                                                                              rtl code                                                                  */
+
+
+module mux8to1(input [7:0] in, input [2:0] sel, output out);
+  wire [3:0] mux_out1;
+  wire [1:0] mux_out2;
+
+  genvar i;
+
+  generate
+    for (i = 0; i < 4; i = i + 1) begin
+      mux_2to1 mux1(.a(in[2*i]), .b(in[2*i+1]), .sel(sel[0]), .y(mux_out1[i]));
+    end
+  endgenerate
+
+  generate
+    for (i = 0; i < 2; i = i + 1) begin
+      mux_2to1 mux2(.a(mux_out1[2*i]), .b(mux_out1[2*i+1]), .sel(sel[1]), .y(mux_out2[i]));
+    end
+  endgenerate
+
+  mux_2to1 mux3(.a(mux_out2[0]), .b(mux_out2[1]), .sel(sel[2]), .y(out));
+
+endmodule
+
+/*                                                                         tb code                                                                           */
+
+
+module mux8to1_tb;
+  reg [7:0] in;
+  reg [2:0] sel;
+  wire out;
+
+  mux8to1 uut(
+    .in(in),
+    .sel(sel),
+    .out(out)
+  );
+
+  initial begin
+    in = 8'b11001100; sel = 3'b000; #10;
+    in = 8'b11001100; sel = 3'b001; #10;
+    in = 8'b11001100; sel = 3'b010; #10;
+    in = 8'b11001100; sel = 3'b011; #10;
+    in = 8'b11001100; sel = 3'b100; #10;
+    in = 8'b11001100; sel = 3'b101; #10;
+    in = 8'b11001100; sel = 3'b110; #10;
+    in = 8'b11001100; sel = 3'b111; #10;
+    $stop;
+  end
+endmodule
