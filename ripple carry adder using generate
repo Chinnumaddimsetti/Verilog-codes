@@ -1,0 +1,45 @@
+/*                                                                                    rtl code                                                                                                     */
+
+`define size 10
+module gen(input [(`size-1):0]a,input [(`size-1):0]b,input cin,output [(`size-1):0]sum,output cout);
+wire [(`size-2):0]w;
+genvar i;
+fa a1(a[0],b[0],cin,sum[0],w[0]);
+generate for(i=1;i<(`size-1);i=i+1)
+	begin:rippler
+		fa a2(a[i],b[i],w[(i-1)],sum[i],w[i]);
+	end
+endgenerate
+fa a4(a[`size-1],b[`size-1],w[`size-2],sum[`size-1],cout);
+endmodule
+
+
+/*                                                                          tb code                                                                                              */
+
+
+
+`define size 10
+module gen_tb;
+  reg [(`size-1):0] a, b;
+  reg cin;
+  wire [(`size-1):0] sum;
+  wire cout;
+
+  gen uut(
+    .a(a),
+    .b(b),
+    .cin(cin),
+    .sum(sum),
+    .cout(cout)
+  );
+
+  initial begin
+    $monitor("Time=%0t a=%b b=%b cin=%b sum=%b cout=%b", $time, a, b, cin, sum, cout);
+    a = 10'b0000000000; b = 10'b0000000000; cin = 1'b0; #10;
+    a = 10'b1111111111; b = 10'b0000000000; cin = 1'b0; #10;
+    a = 10'b0000000000; b = 10'b1111111111; cin = 1'b0; #10;
+    a = 10'b1010101010; b = 10'b0101010101; cin = 1'b0; #10;
+    a = 10'b1111111111; b = 10'b1111111111; cin = 1'b1; #10;
+    $stop;
+  end
+endmodule
